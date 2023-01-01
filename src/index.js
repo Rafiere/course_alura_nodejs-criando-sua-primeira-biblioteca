@@ -1,32 +1,31 @@
-/* A biblioteca "fs" é nativa do Node e permite que a linguagem de programação interaja com o sistema de arquivos do computador. */
-
+/* The "fs" library is native to Node and allows the programming language to interact with the computer's file system. */
 import fs from "fs";
 import chalk from "chalk";
 
-function extraiLinks(texto) {
+const extractLinks = async (text) => {
   const regex = /\[([^[\]]*?)\]\((https?:\/\/[^\s?#.].[^\s]*)\)/gm;
-  const capturas = [...texto.matchAll(regex)];
-  const resultados = capturas.map((captura) => ({ [captura[1]]: captura[2] }));
-  return resultados.length !== 0 ? resultados : "não há links no arquivo";
-}
+  const captures = [...text.matchAll(regex)];
+  const results = captures.map((capture) => ({ [capture[1]]: capture[2] }));
+  return results.length !== 0 ? results : "There are no links in the file.";
+};
 
-function trataErro(erro) {
-  console.log(erro);
-  /* Se um erro acontecer, essa mensagem será enviada. */
+const handleError = (error) => {
+  console.log(error);
+  /* If an error occurs, this message will be sent. */
 
-  throw new Error(chalk.red(erro.code, "não há arquivo no diretório"));
-}
+  throw new Error(chalk.red(erro.code, "There are no files in the directory."));
+};
 
-/* A palavra-chave "await" diz que o JS tem que resolver o retorno, e, após isso, enviar os dados desse retorno para a variável "texto", que seria o retorno dessa promise, contendo o texto do arquivo. */
+/* The keyword "await" says that the JS has to resolve the return, and, after that, send the data of this return to the variable "text", which would be the return of this promise, containing the text of the file. */
 
-async function pegaArquivo(caminhoDoArquivo) {
+const catchFile = async (filePath) => {
   try {
     const encoding = "utf-8";
-    const texto = await fs.promises.readFile(caminhoDoArquivo, encoding);
-    return extraiLinks(texto);
-  } catch (erro) {
-    trataErro(erro);
+    const text = await fs.promises.readFile(filePath, encoding);
+    return extractLinks(text);
+  } catch (error) {
+    handleError(error);
   }
-}
+};
 
-export default pegaArquivo;
+export default catchFile;

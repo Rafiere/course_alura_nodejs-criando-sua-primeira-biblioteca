@@ -1,41 +1,52 @@
-import pegaArquivo from "./index.js";
+import catchFile from "./index.js";
 import fs from "fs";
 import chalk from "chalk";
+import validateLinkList from "./http-validation.js";
 
-/* Estamos obtendo os parâmetros que foram passados por argumento ao executarmos esse arquivo através do Node. */
+/* We are getting the parameters that were passed by argument when we run this file through node. */
+const path = process.argv;
 
-const caminho = process.argv;
+const printList = async (shouldValidateLinks, result, identifier = "") => {
+  if (shouldValidateLinks) {
+    console.log(
+      chalk.yellow("Validated Link List"),
+      chalk.black.bgGreen(identifier),
+      await validateLinkList(result)
+    );
+  } else {
+    console.log(
+      chalk.yellow("Validated Link List"),
+      chalk.black.bgGreen(identifier),
+      result
+    );
+  }
+};
 
-function imprimeLista(resultado, identificador = "") {
-  console.log(
-    chalk.yellow("lista de links"),
-    chalk.black.bgGreen(identificador),
-    resultado
-  );
-}
+const processText = async (args) => {
+  const path = args[2];
 
-async function processaTexto(argumentos) {
-  const caminho = argumentos[2];
+  /* If the "--validate" option is passed, it will be assigned in the "validate" constant. */
+  const validate = args[3] === "--validate";
 
   try {
-    fs.lstatSync(caminho);
-  } catch (erro) {
-    if (erro.code === "ENOENT") {
-      console.log("arquivo ou diretório não existe");
+    fs.lstatSync(path);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      console.log("File or directory does not exist.");
       return;
     }
   }
 
-  if (fs.lstatSync(caminho).isFile()) {
-    const resultado = await pegaArquivo(argumentos[2]);
-    imprimeLista(resultado);
-  } else if (fs.lstatSync(caminho).isDirectory()) {
-    const arquivos = await fs.promises.readdir(caminho);
-    arquivos.forEach(async (nomeDeArquivo) => {
-      const lista = await pegaArquivo(`${caminho}/${nomeDeArquivo}`);
-      imprimeLista(lista, nomeDeArquivo);
+  if (fs.lstatSync(path).isFile()) {
+    const result = await catchFile(args[2]);
+    printList(validate, result);
+  } else if (fs.lstatSync(path).isDirectory()) {
+    const files = await fs.promises.readdir(path);
+    files.forEach(async (fileName) => {
+      const list = await catchFile(`${path}/${fileName}`);
+      printList(validate, list, fileName);
     });
   }
-}
+};
 
-processaTexto(caminho);
+processText(path);
